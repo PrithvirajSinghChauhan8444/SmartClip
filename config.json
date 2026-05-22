@@ -1,0 +1,36 @@
+{
+  "ollama": {
+    "host": "http://localhost:11434",
+    "model": "gemma4:e4b",
+    "options": {
+      "temperature": 0.3
+    }
+  },
+  "menu": {
+    "tool": "wofi",
+    "args": ["--dmenu", "--width=300", "--height=250", "--prompt=Select Action:"]
+  },
+  "tags": {
+    "!format": {
+      "name": "Format Text",
+      "prompt": "You are a precise text formatter. Clean up spelling, grammar, and layout. Preserve meaning and tone. Output ONLY the polished text. No explanation, no wrapper."
+    },
+    "!json": {
+      "name": "Convert to JSON",
+      "prompt": "Convert input text to valid, pretty JSON. Output ONLY the JSON block, no markdown formatting blocks."
+    },
+    "!cal": {
+      "name": "Extract Calendar Event",
+      "prompt": "Extract events from text. Output list with Title, Date, Time, Location. Output only the list."
+    },
+    "!summarize": {
+      "name": "Summarize Text",
+      "prompt": "Summarize concisely in bullet points. Output ONLY summary bullets."
+    },
+    "!ask": {
+      "name": "Ask Question about Text",
+      "prompt": "You are a helpful assistant. Answer the user's custom question specifically using the context from the provided text. Output ONLY the answer.",
+      "input": true
+    }
+  }
+}
