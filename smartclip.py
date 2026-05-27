@@ -147,49 +147,98 @@ def copy_to_clipboard(output):
         notify("wl-copy missing!")
         sys.exit(1)
 
+def paste_output():
+    # If wtype is installed, automatically paste output to replace highlighted text
+    if shutil.which("wtype"):
+        try:
+            import time
+            time.sleep(0.15)  # Wait for active window focus to restore
+            subprocess.run(["wtype", "-M", "ctrl", "-P", "v", "-m", "ctrl"], check=True)
+        except Exception as e:
+            notify(f"Auto-paste error: {e}")
 
 def main():
     config = load_config()
     
+    # Parse CLI modes
+    mode = "default"
+    if len(sys.argv) > 1:
+        arg = sys.argv[1]
+        if arg in ("--direct", "-d", "--prompt", "-p"):
+            mode = "direct"
+        elif arg in ("--exec", "-e", "--run", "-r"):
+            mode = "exec"
+        elif arg in ("--help", "-h"):
+            print("SmartClip CLI Options:")
+            print("  (no args)                     Default mode (inline tag or menu fallback)")
+            print("  -d, --direct, -p, --prompt    Prompt for a custom command to apply to the selection")
+            print("  -e, --exec, -r, --run         Treat selection directly as AI instruction/prompt")
+            print("  -h, --help                    Show this help message")
+            sys.exit(0)
+
     # 1. Get text
     text = get_selection()
     if not text:
         notify("No highlighted text!")
         sys.exit(1)
 
-    # 2. Parse tag
-    first_word = text.split()[0] if text.split() else ""
     tags = config.get("tags", {})
-    
-    tag = None
-    if first_word in tags:
-        tag = first_word
-        # Strip tag from start of text
-        text = text[len(tag):].strip()
+    prompt = None
+
+    if mode == "direct":
+        # Prompt user for direct command/instruction
+        instruction = get_user_input(config, "Enter custom instruction:")
+        if not instruction:
+            sys.exit(0) # Cancelled
+        prompt = f"Follow the user's custom instruction to process the input text.\nInstruction: {instruction}\n\nInput Text:"
+        notify("Running custom command...")
+        
+    elif mode == "exec":
+        # Selected text itself is the direct command/instruction
+        prompt = "You are a helpful AI assistant. Execute the instruction, answer the question, or complete the task specified in the input text directly and concisely. Output ONLY the response/result. No intro, no explanation, no wrappers."
+        notify("Executing text directly...")
+        
     else:
-        # Show dynamic menu
-        tag = show_menu(config)
+        # Default behavior: check tag first
+        first_word = text.split()[0] if text.split() else ""
+        
+        tag = None
+        if first_word in tags:
+            tag = first_word
+            # Strip tag from start of text
+            text = text[len(tag):].strip()
+        else:
+            # Show dynamic menu
+            tag = show_menu(config)
+
+        # Query LLM based on tag config
+        tag_config = tags[tag]
+        prompt = tag_config.get("prompt", "")
+
+        # Special input handling for !custom and other input tags
+        if tag == "!custom" or tag_config.get("input", False):
+            prompt_label = "Enter custom instruction:" if tag == "!custom" else "Ask question about text:"
+            instruction = get_user_input(config, prompt_label)
+            if not instruction:
+                sys.exit(0) # Cancelled
+            if tag == "!custom":
+                prompt = f"Follow the user's custom instruction to process the input text.\nInstruction: {instruction}\n\nInput Text:"
+            else:
+                prompt = f"{prompt}\nUser Question: {instruction}"
+
+        notify(f"Running {tag}...")
 
     # 3. Query LLM
-    tag_config = tags[tag]
-    prompt = tag_config["prompt"]
-    
-    if tag_config.get("input", False):
-        question = get_user_input(config, "Ask question about text:")
-        if not question:
-            sys.exit(0) # Cancelled
-        prompt = f"{prompt}\nUser Question: {question}"
-
-    notify(f"Running {tag}...")
     output = query_ollama(config, prompt, text)
 
     if not output:
         notify("Empty AI output!")
         sys.exit(1)
 
-    # 4. Copy to clipboard and notify
+    # 4. Copy to clipboard, notify, and auto-paste
     copy_to_clipboard(output)
     notify("Output saved to clipboard!")
+    paste_output()
 
 if __name__ == "__main__":
     main()

@@ -1,7 +1,7 @@
 {
   "ollama": {
     "host": "http://localhost:11434",
-    "model": "gemma4:e4b",
+    "model": "llama3.2:latest",
     "options": {
       "temperature": 0.3
     }
@@ -31,6 +31,16 @@
       "name": "Ask Question about Text",
       "prompt": "You are a helpful assistant. Answer the user's custom question specifically using the context from the provided text. Output ONLY the answer.",
       "input": true
+    },
+    "!custom": {
+      "name": "Custom Command - Prompt for instructions",
+      "prompt": "You are a helpful assistant. Follow the user's custom instruction to process the input text. Output ONLY the processed result. No intro, no explanation, no wrappers.",
+      "input": true
+    },
+    "!exec": {
+      "name": "Execute Directly - Treat text as instruction",
+      "prompt": "You are a helpful AI assistant. Execute the instruction, answer the question, or complete the task specified in the input text directly and concisely. Output ONLY the response/result. No intro, no explanation, no wrappers.",
+      "direct_exec": true
     }
   }
 }

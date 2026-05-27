@@ -57,11 +57,41 @@ SmartClip/
    .venv/bin/python3 smartclip.py
    ```
 3. A `wofi` menu will overlay. Select an action.
-4. The output is copied directly to your clipboard.
+4. The output is copied directly to your clipboard (and auto-pasted back if `wtype` is installed).
 
-### Method 2: Global Hyprland Hotkey
-Add the following line to `~/config/hypr/hyprland.conf`:
+---
+
+## Direct Command & Execution Modes 🚀
+We have added two high-productivity direct execution modes:
+
+### 1. Direct Command Mode (`-d` / `--direct`)
+* **What it does**: Prompts you for a custom instruction to apply to the highlighted text.
+* **Example**: Highlight `"Hello my friend"`, run with `-d`, type `"Translate to Spanish"`, and get `"Hola mi amigo"`.
+* **CLI Command**:
+  ```bash
+  .venv/bin/python3 smartclip.py --direct
+  ```
+
+### 2. Direct Text Execution Mode (`-e` / `--exec`)
+* **What it does**: Instantly treats the highlighted text *itself* as the direct prompt/instruction for the AI, bypassing all prompt menus.
+* **Example**: Highlight `"Write a quick joke about programmers"`, run with `-e`, and it gets replaced/copied instantly with the joke.
+* **CLI Command**:
+  ```bash
+  .venv/bin/python3 smartclip.py --exec
+  ```
+
+---
+
+## Global Hotkey Configurations
+To integrate these modes seamlessly into your Hyprland workspace, add the following bindings to `~/.config/hypr/hyprland.conf`:
+
 ```ini
+# Normal SmartClip (Inline tag detection or Tag Menu fallback)
 bind = SUPER_SHIFT, C, exec, /home/prit/Project_Linux/SmartClip/.venv/bin/python3 /home/prit/Project_Linux/SmartClip/smartclip.py
+
+# Direct Command Mode (Prompts for custom instruction on highlighted text)
+bind = SUPER_CTRL, C, exec, /home/prit/Project_Linux/SmartClip/.venv/bin/python3 /home/prit/Project_Linux/SmartClip/smartclip.py --direct
+
+# Direct Text Execution Mode (Treats highlighted text itself as AI prompt)
+bind = SUPER_ALT, C, exec, /home/prit/Project_Linux/SmartClip/.venv/bin/python3 /home/prit/Project_Linux/SmartClip/smartclip.py --exec
 ```
-Press `Super + Shift + C` to instantly process any highlighted text on screen.
